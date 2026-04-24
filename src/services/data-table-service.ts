@@ -48,7 +48,7 @@ export class DataTableService {
             errorLoading = false;
             dataFilSrtTracker: any = {}
             comparatorOpts: any = {
-                text: ["Equals", "Not Equal", "Empty", "Not Empty"],
+                text: ["Equals", "Not Equal", "Empty", "Not Empty", "Contains"],
                 number: ["Equals", "Not Equal", "Empty", "Not Empty"],
                 date: ["Equals", "Not on", "Empty", "Not Empty"],
             }
@@ -360,6 +360,8 @@ export class DataTableService {
                                 return Math.abs(colVal.getTime() - filterVal.getTime()) > oneDay
                             return colVal != filterVal
                         }
+                        if(comparator === "Contains")
+                            return colVal && ((typeof colVal === "string" && colVal.indexOf(filterVal) > -1) || colVal == filterVal)
                         if(comparator === "Not Empty"){
                             if(!filterVal && filterVal != "0")
                                 return !!colVal || (colVal === 0)//just return non empty

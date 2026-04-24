@@ -216,6 +216,8 @@ export class DeebodataDataTableComponent {
             this.dataTableService.dTblHeight = h
             setTimeout( () => { 
                 this.dataTableService.setTblBounds()
+                this.dataTableBody?.nativeElement.scrollBy(0, (this.scrollDir === "down" ? 1 : -1))
+                setTimeout(() => { this.setRowSelChecksPlacement() })
             })
         }
 
@@ -1453,6 +1455,7 @@ export class DeebodataDataTableComponent {
         this.dtChecks = []
         this.clearValidatedEdit(null, true)
         this.dataTableService.currMapping = {}
+        this.horizRest = 0
         tbody.scrollTop = 0
         this.verticalRest = 0
         let didXScrl = false;
