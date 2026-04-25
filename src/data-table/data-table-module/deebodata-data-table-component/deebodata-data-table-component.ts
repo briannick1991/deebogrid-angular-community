@@ -251,10 +251,12 @@ export class DeebodataDataTableComponent {
                     this.columnHeaders = []
                     for(i; i < len; i++){
                         const col = this.common.replaceUniSep(els[i].id.replace(/^columnHeader/, ""))
-                        const trkr = this.dataTableService.dataFilSrtTracker[col]
-                        const addCol: ColumnHeader = { column: col, width: (trkr["colWidth"] || this.dataTableService.useColWid), 
-                        hideMinCol: false, freeze: false, minimized: trkr["minimize"], dataType: this.dataTableService.figureFilterType(col) }
-                        this.columnHeaders.push(addCol)
+                        if(!this.columnHeaders.map( c => c.column).includes(col)){
+                            const trkr = this.dataTableService.dataFilSrtTracker[col]
+                            const addCol: ColumnHeader = { column: col, width: (trkr["colWidth"] || this.dataTableService.useColWid), 
+                            hideMinCol: false, freeze: false, minimized: trkr["minimize"], dataType: this.dataTableService.figureFilterType(col) }
+                            this.columnHeaders.push(addCol)
+                        }
                     }
                     this.columnNames = this.columnHeaders.map( c => c.column)
                     const dtB = this.dataTableBody.nativeElement
@@ -1459,6 +1461,8 @@ export class DeebodataDataTableComponent {
         tbody.scrollTop = 0
         this.verticalRest = 0
         let didXScrl = false;
+        if(reset && thead)
+            thead.style.marginLeft = "0px"
         this.lastElRowIndex = 0
         let n = 0
         const defNum = parseInt(this.dataTableService.defltRHgt.replace(/[ ]?px/g, ""))
@@ -1493,7 +1497,7 @@ export class DeebodataDataTableComponent {
             if(field && field === prop && !didXScrl){
                 setTimeout( () => {
                     tbody.scrollLeft = tbodyX
-                    if(tbodyX > 0)
+                    if(thead)
                         thead.style.marginLeft = (-tbodyX + "px")
                     this.horizRest = tbodyX
                 }, 100)
@@ -1511,7 +1515,8 @@ export class DeebodataDataTableComponent {
             if(fhead){
                 const bds = fhead.getBoundingClientRect()
                 room = this.dataTableService.tblRight - bds.right
-                offst = Math.ceil(room/bds.width)
+                if(room > 0)
+                    offst = Math.ceil(room/bds.width)
             }
             horizLim = Math.max(horizLim, (uCols.map( c => c.column).indexOf(field) + offst))
         }
@@ -1662,7 +1667,7 @@ export class DeebodataDataTableComponent {
         }
     }
 
-    resetCurrentData() {
+    resetCurrentData(col?: string) {
         this.topLevelFilter = ""
         this.dataTableService.sortOrder = []
         this.clearHiddenCols()
@@ -1675,7 +1680,7 @@ export class DeebodataDataTableComponent {
         this.dataTableService.setTblBounds()
         this.dataTableService.resetFilSrtTracker()
         this.dataTableService.currFilData = this.dataTableService.mainData.filter( d => { return true })
-        this.renderCurrData(true)
+        this.renderCurrData(true, col)
     }
 
     resetVisCols() {

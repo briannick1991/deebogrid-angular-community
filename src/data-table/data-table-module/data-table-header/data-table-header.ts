@@ -40,7 +40,7 @@ export class DataTableHeader {
   @Output("render") render: EventEmitter<any> = new EventEmitter()
   @Output("width") width: EventEmitter<columnWidthResize> = new EventEmitter()
   @Output("height") height: EventEmitter<number> = new EventEmitter()
-  @Output("reset") reset: EventEmitter<boolean> = new EventEmitter()
+  @Output("reset") reset: EventEmitter<string> = new EventEmitter()
   @Output("freeze") freeze: EventEmitter<string> = new EventEmitter()
   @Output("minimize") minimize: EventEmitter<string> = new EventEmitter()
   @ViewChild('colHeader', { static: true }) colHeaderEl!: ElementRef<HTMLElement>
@@ -86,7 +86,7 @@ export class DataTableHeader {
             this.dataTableService.doSortOnField(col)
             this.render.emit({value: (this.dataTableService.dataFilSrtTracker[col].filter || ""), field: col})
             if(!this.dataTableService.currSelRows.length && this.dataTableService.arefilSrtTrkPropsDefault())
-                this.reset.emit(true)
+                this.reset.emit(col)
         })
     }
   }

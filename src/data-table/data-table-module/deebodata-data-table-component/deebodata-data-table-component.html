@@ -49,13 +49,13 @@ dataTableService.isSorting }">
     </div>
 </div><div #dataTable class="data-table" [class.inline-table]="rowNumbers">
     <div #dataTableHeaders class="data-table-headers">
-        @for (col of columnHeaders; track col; let i = $index) {
+        @for (col of columnHeaders; track col.column; let i = $index) {
             <app-data-table-header
             [columnHeader]="col"
             [colWid]="dataTableService.useColWid"
             [hideMinCol]="col.hideMinCol"
             [canFreeze]="i === 0 ? true : false"
-            (reset)="resetCurrentData()"
+            (reset)="resetCurrentData($event)"
             (freeze)="freezeColCells($event)"
             (minimize)="minimizeColEls($event)"
             (height)="setHeaderHeight($event, true)"
