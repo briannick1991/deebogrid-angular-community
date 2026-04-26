@@ -82,11 +82,11 @@ export class DataTableHeader {
     if(!this.dataTableService.isSorting){
         this.dataTableService.isSorting = true
         setTimeout( () => {
-            this.dataTableService.isSorting = false
             this.dataTableService.doSortOnField(col)
             this.render.emit({value: (this.dataTableService.dataFilSrtTracker[col].filter || ""), field: col})
             if(!this.dataTableService.currSelRows.length && this.dataTableService.arefilSrtTrkPropsDefault())
                 this.reset.emit(col)
+            this.dataTableService.isSorting = false
         })
     }
   }

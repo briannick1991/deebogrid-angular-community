@@ -3,10 +3,11 @@
 [ngStyle]="{'width': columnHeader.width, 'height': columnHeader.height, 'lineHeight': columnHeader.lineHeight}"
 (mousedown)="tblDragService.handleHeaderSizeAdjust($event)" (mouseup)="tblDragService.handleColResMouseUp($event)"
 (mousemove)="tblDragService.checkItemBorderCursor($event)" (mousemove)="tblDragService.handleHeaderSizeAdjust($event)">
-    <span (mousemove)="common.unbindMouseEvent($event)" (mousedown)="common.unbindMouseEvent($event)" (mouseup)="common.unbindMouseEvent($event)">{{text}}</span>
+    <span (mousemove)="common.unbindMouseEvent($event)" (mousedown)="common.unbindMouseEvent($event)" (mouseup)="common.unbindMouseEvent($event)"
+    (click)="doSortOnClick($event, columnHeader.column)" [class.span-disabled]="dataTableService.isSorting">{{text}}</span>
     <button [id]="'btnSort' + elCol" type="button" [disabled]="dataTableService.isSorting" (click)="doSortOnClick($event, columnHeader.column)" class="data-sort-arr"
     (mousemove)="common.unbindMouseEvent($event)" (mousedown)="common.unbindMouseEvent($event)" (mouseup)="common.unbindMouseEvent($event)">
-        <i class="material-icons">{{dataTableService.dataFilSrtTracker[columnHeader.column].sort === "asc" ? "arrow_downward" : "arrow_upward"}}</i>
+        <i class="material-icons v-mid">{{dataTableService.dataFilSrtTracker[columnHeader.column].sort === "asc" ? "arrow_downward" : "arrow_upward"}}</i>
     </button>
     @if(dataTableService.sortOrder.indexOf(columnHeader.column) > -1){
         <sup [class.prevent]="dataTableService.isSorting" (click)="doSortOnClick($event, columnHeader.column)" 

@@ -13,3 +13,7 @@
 .btn-x-filter:hover{
     background: #fdf3f3;
 }
+
+.span-disabled{
+    opacity: 0.5;
+}
