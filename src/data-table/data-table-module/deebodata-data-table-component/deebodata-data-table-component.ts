@@ -1461,8 +1461,11 @@ export class DeebodataDataTableComponent {
         tbody.scrollTop = 0
         this.verticalRest = 0
         let didXScrl = false;
-        if(reset && thead)
+        if(reset && !field && thead && tbody){
             thead.style.marginLeft = "0px"
+            tbody.scrollLeft = 0
+            this.horizRest = 0
+        }
         this.lastElRowIndex = 0
         let n = 0
         const defNum = parseInt(this.dataTableService.defltRHgt.replace(/[ ]?px/g, ""))
