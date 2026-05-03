@@ -133,7 +133,7 @@ export class DeebodataDataTableComponent {
                 this.dataTableService.mainData = tdata.filter( (d: any) => true )
                 this.dataTableService.currFilData = tdata.filter( (d: any) => true )
                 this.dataTableService.mainDataLen = this.dataTableService.mainData.length
-                this.buildInitUiDataTable(tdata, "#000035", "#e9e9e9")//hex or rgb values work best
+                this.buildInitUiDataTable(tdata, "white", "#00a8f3")//hex or rgb values work best
                 if(!this.dataTableService.errorLoading)
                   this.dataTableService.noDataMsg = "No data to display for this configuration.";
                 this.tblDragService.dTblHeightOutput.subscribe( h => this.setTableHeight(h) )
@@ -709,7 +709,9 @@ export class DeebodataDataTableComponent {
         setTimeout( () => { this.dataTableService.isFiltering = false }, 500)
     }
 
-    topFilterOnKeyUp() {
+    topFilterOnKeyUp(event: any) {
+      if(event && !this.common.keyCanSearch(event))
+        return;
       if(!this.dataTableService.isFiltering){
           this.dataTableService.isFiltering = true
           this.dataTableService.easyFilter((this.topLevelFilter || ""), this.dataTableService.mainData, this.dataTableService.sortOrder)
@@ -722,7 +724,7 @@ export class DeebodataDataTableComponent {
               this.dataTableService.isFiltering = false
               const buildUpLen = this.filterBuildUp.length
               if(buildUpLen){
-                  this.topFilterOnKeyUp()
+                  this.topFilterOnKeyUp(null)
                   this.filterBuildUp = []
               } 
           }, 500)
@@ -1103,8 +1105,14 @@ export class DeebodataDataTableComponent {
         }
     }
 
+    valEditFocusTo: number|null = null;
+
     handleValidatedCellEditFocus(cellData: any) {//{type: this.cell.dataType, value: this.cell.rawText}
         this.validatedEditType = cellData.type
+        if(this.valEditFocusTo){
+            clearTimeout(this.valEditFocusTo)
+            this.valEditFocusTo = null
+        }
         setTimeout( () => {
             const rel = this.validatedEdit.nativeElement
             let el;
@@ -1264,11 +1272,22 @@ export class DeebodataDataTableComponent {
         }
     }
 
+    validateRawText(text: string, col: string, dataType: string): string {
+        if(dataType === "number" && (!text || /[a-zA-Z \/]/g.test(text)))
+            return ""
+        return text
+    }
+
      execCellEdit(e: any, noBlur?: boolean, forceVal?: any/*from dropdown select, normally a string*/) {//{ column: this.cell.column, value: val }
         if(this.dataTableService.currEditIndex > -1){
             let cfDIdx;
             const valEl = <HTMLInputElement>document.getElementsByClassName("edit-input")[0]
             let val = forceVal ? forceVal : (valEl ? valEl.value : e.value);
+            if(val && !this.validateRawText(val, e.column, this.validatedEditType)){
+                if(!noBlur)
+                    this.clearValidatedEdit(e)
+                return;
+            }
             if(val && typeof val === "string" && this.validatedEditType === "date")
                 val = this.common.coerceDate(val)
             if(val && typeof val === "string" && this.validatedEditType === "number")
@@ -1403,6 +1422,18 @@ export class DeebodataDataTableComponent {
             }
             setTimeout( () => { this.setRowSelChecksPlacement() })
             this.clearValidatedEdit()
+        }
+
+        checkTabHorizScroll(id: string) {
+            const colH = document.getElementById("columnHeader" + id)
+            const dtb = this.dataTableBody.nativeElement
+            if(colH && dtb){
+                let left = (colH.getBoundingClientRect().left-50)
+                if(colH){
+                    left -= (this.rowNumbers ? 75 : 0)
+                    dtb.scrollBy(left, 0)
+                }
+            }
         }
 
         handleTheme(co1: string | null, co2: string | null) {

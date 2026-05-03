@@ -5,8 +5,8 @@
 </div>
 <div class="controls" >
     <input type="text" #topLevelDataFilter autocomplete="off" name="topLevelDataFilter" placeholder="Filter any column..." 
-    (input)="topFilterOnKeyUp()" (keyup)="topFilterOnKeyUp()" maxlength="255" [(ngModel)]="topLevelFilter" 
-    [disabled]="!dataTableService.mainData.length || handlingSelRows" />
+    (input)="topFilterOnKeyUp($event)" (keyup)="topFilterOnKeyUp($event)" maxlength="255" [(ngModel)]="topLevelFilter" 
+    [disabled]="!dataTableService.mainData.length || handlingSelRows" autocomplete="off" />
     <button type="button" [disabled]="!dataTableService.currSelRows.length || handlingSelRows" (click)="clearSelectedRows()" class="btn-ctrl-sel-rows">Deselect Rows</button>
     <button #btnTogSelRows type="button" [disabled]="!dataTableService.currSelRows.length || handlingSelRows" (click)="toggleSelectedRows()" class="btn-ctrl-sel-rows">
         <i class="material-icons" aria-hidden="false">check_box_outline_blank</i>&nbsp;<span>{{togSelRows}}</span>
@@ -33,7 +33,7 @@ dataTableService.isSorting }">
     }
 </div>
 <div class="relly" style="z-index: 6;">
-    <div #fCellDragger tabindex="0" id="fCellDragger" (focus)="focusCellDragger()"
+    <div #fCellDragger tabindex="0" id="fCellDragger" (focus)="focusCellDragger()" (blur)="execValClear(true)"
     [ngClass]="{'hide': dataTableService.currEditIndex < 0, 'focused-cell-dragger': dataTableService.currEditIndex > -1 }"></div>
 </div>
 <div [ngClass]="{'row-numbers': rowNumbers, 'hide': !rowNumbers}" >
@@ -58,6 +58,7 @@ dataTableService.isSorting }">
             (reset)="resetCurrentData($event)"
             (freeze)="freezeColCells($event)"
             (minimize)="minimizeColEls($event)"
+            (scrollOnFocus)="checkTabHorizScroll($event)"
             (height)="setHeaderHeight($event, true)"
             (render)="renderCurrData(false, $event.field)"
             (width)="handleSingleColResize($event.value, $event.column)"

@@ -30,6 +30,7 @@ export class DataTableHeader {
   autoMaxed = false
   text: string = ""
   elCol: string = "";
+  canTabScroll = true
   compOpts: string[] = []
   filterBuildUp: any[] = []
   @Input() colWid: string = "";
@@ -43,6 +44,7 @@ export class DataTableHeader {
   @Output("reset") reset: EventEmitter<string> = new EventEmitter()
   @Output("freeze") freeze: EventEmitter<string> = new EventEmitter()
   @Output("minimize") minimize: EventEmitter<string> = new EventEmitter()
+  @Output("scrollOnFocus") scrollOnFocus: EventEmitter<string> = new EventEmitter()
   @ViewChild('colHeader', { static: true }) colHeaderEl!: ElementRef<HTMLElement>
   @ViewChild('filterInput', { static: true }) filterInputEl!: ElementRef<HTMLInputElement>
   @ViewChild('compSelect', { static: true }) compSelectEl!: ElementRef<HTMLSelectElement>
@@ -53,6 +55,15 @@ export class DataTableHeader {
     this.compOpts = [...this.dataTableService.comparatorOpts[this.columnHeader.dataType]]
     this.tblDragService.headDims.subscribe( d => { this.updateUiColCellTheme(d.prop, d.value) })
     this.dataTableService.setIdealColumnWidth.subscribe( c => { this.handleColResDblClick(this.columnHeader.column, true) })
+  }
+
+  preventTabScroll() {
+    this.canTabScroll = false
+  }
+
+  emitTabFocus(col: string) {
+    if(this.canTabScroll)
+        this.scrollOnFocus.emit(col)
   }
 
   freezeColOnClick(e: any, prop: string) {
@@ -72,6 +83,7 @@ export class DataTableHeader {
   }
 
   minimizeColumn(col: string) {
+    this.canTabScroll = true
     this.dataTableService.dataFilSrtTracker[col].minimize = true
     this.dataTableService.sortOrder = this.dataTableService.sortOrder.filter( (s: any) => s !== col )
     this.minimize.emit(col)
@@ -79,6 +91,7 @@ export class DataTableHeader {
 
   doSortOnClick(e: any, col: string) {
     e && e.stopPropagation()
+    this.canTabScroll = true
     if(!this.dataTableService.isSorting){
         this.dataTableService.isSorting = true
         setTimeout( () => {
@@ -99,13 +112,15 @@ export class DataTableHeader {
           fil.value = "";
           comp.value = ""
           this.dataTableService.dataFilSrtTracker[field].comparator = null
-          this.filterOnKeyUp(field, "", true)
+          this.filterOnKeyUp(event, field, "", true)
       }
   }
 
-  filterOnKeyUp(field: string, val: any, manual?: any) {
+  filterOnKeyUp(event:any, field: string, val: any, manual?: any) {
       const filObj = {value: val, field: field}
       if(field && !this.dataTableService.isFiltering){
+          if(!manual && event && !this.common.keyCanSearch(event))
+            return;
           this.dataTableService.isFiltering = true
           this.dataTableService.dataFilSrtTracker[field].filter = val || ""
           this.dataTableService.columnFilter(this.dataTableService.mainData, field, this.dataTableService.dataFilSrtTracker, this.dataTableService.sortOrder, manual)
@@ -115,7 +130,7 @@ export class DataTableHeader {
               const buildUpLen = this.filterBuildUp.length
               if(buildUpLen){
                   const filBld = this.filterBuildUp[(buildUpLen-1)]
-                  this.filterOnKeyUp(filBld.field, filBld.value)
+                  this.filterOnKeyUp(null, filBld.field, filBld.value, true)
                   this.filterBuildUp = []
                   if((this.dataTableService.dataFilSrtTracker[field].filter || 
                       (this.dataTableService.dataFilSrtTracker[field].comparator && this.dataTableService.dataFilSrtTracker[field].comparator != "Equals")
@@ -146,7 +161,7 @@ export class DataTableHeader {
       if(col){
         const value = this.dataTableService.dataFilSrtTracker[col].filter
         this.dataTableService.dataFilSrtTracker[col].comparator = comp
-        this.filterOnKeyUp(col, (value || ""), true)
+        this.filterOnKeyUp(null, col, (value || ""), true)
       }
   }
 

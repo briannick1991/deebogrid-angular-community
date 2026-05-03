@@ -184,6 +184,63 @@ export class CommonService {
             return false
         }
 
+        keyCanSearch(event: any) {
+            return (this.isSearchKey(event) ||
+            this.isBackKey(event) ||
+            this.isDeleteKey(event) ||
+            this.isSpaceKey(event))
+        }
+
+        isSearchKey(event: any) {
+            if (event && event.key !== undefined) {
+                return /^[A-Za-z0-9, ()&:\-.,#$!@]$/.test(event.key)
+            } else if (event.keyIdentifier !== undefined) {
+                return (/Key([a-zA-Z])/.test(event.keyIdentifier) || 
+                        this.mystartsWith(event.keyIdentifier, "Digit") ||
+                        this.mystartsWith(event.keyIdentifier, "Numpad"))
+            } else if (event.keyCode !== undefined) {
+                return ((event.keyCode >= 65 && event.keyCode <= 90) || 
+                        (event.keyCode >= 48 && event.keyCode <= 57) ||
+                        (event.keyCode >= 96 && event.keyCode <= 105))
+            }
+            return false
+        }
+
+        isBackKey(event: any) {
+            if (event && event.key !== undefined) {
+                return event.key === 'Backspace'
+            } else if (event.keyIdentifier !== undefined) {
+                return event.keyIdentifier === 'Backspace'
+            } else if (event.keyCode !== undefined) {
+                return event.keyCode === 8
+            }
+            return false
+        }
+
+        isDeleteKey(event: any) {
+            if (event && event.key !== undefined) {
+                return event.key === 'Delete'
+            } else if (event.keyIdentifier !== undefined) {
+                return event.keyIdentifier === 'Delete'
+            } else if (event.keyCode !== undefined) {
+                return event.keyCode === 46
+            }
+            return false
+        }
+
+        isSpaceKey(event: any) {
+            if (event && event.key !== undefined) {
+                return event.key == " "
+            } else if (event.keyIdentifier !== undefined) {
+                return event.keyIdentifier == " "
+            } else if (event.keyCode !== undefined) {
+                return event.keyCode === 32
+            } else if (event.code !== undefined) {
+                return event.code === "Space"
+            }
+            return false
+        }
+
         dontSan(val: any) {
             if(val && (this.testShortDate(val) || this.testISODate(val)))
                 return true

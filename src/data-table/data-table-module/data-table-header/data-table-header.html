@@ -6,7 +6,8 @@
     <span (mousemove)="common.unbindMouseEvent($event)" (mousedown)="common.unbindMouseEvent($event)" (mouseup)="common.unbindMouseEvent($event)"
     (click)="doSortOnClick($event, columnHeader.column)" [class.span-disabled]="dataTableService.isSorting">{{text}}</span>
     <button [id]="'btnSort' + elCol" type="button" [disabled]="dataTableService.isSorting" (click)="doSortOnClick($event, columnHeader.column)" class="data-sort-arr"
-    (mousemove)="common.unbindMouseEvent($event)" (mousedown)="common.unbindMouseEvent($event)" (mouseup)="common.unbindMouseEvent($event)">
+    (mousemove)="common.unbindMouseEvent($event)" (mousedown)="preventTabScroll()" (mouseup)="common.unbindMouseEvent($event)"
+    (focus)="emitTabFocus(elCol)">
         <i class="material-icons v-mid">{{dataTableService.dataFilSrtTracker[columnHeader.column].sort === "asc" ? "arrow_downward" : "arrow_upward"}}</i>
     </button>
     @if(dataTableService.sortOrder.indexOf(columnHeader.column) > -1){
@@ -15,7 +16,8 @@
          class="sort-order-indicator">{{(dataTableService.sortOrder.indexOf(columnHeader.column)+1) | number}}</sup>
     }
     <button [id]="'btnMin' + elCol" type="button" (click)="minimizeColumn(columnHeader.column)" class="btn-min-col" [class.btn-min-col-hide]="hideMinCol"
-    (mousemove)="common.unbindMouseEvent($event)" (mousedown)="common.unbindMouseEvent($event)" (mouseup)="common.unbindMouseEvent($event)" >
+    (mousemove)="common.unbindMouseEvent($event)" (mousedown)="preventTabScroll()" (mouseup)="common.unbindMouseEvent($event)" 
+    (focus)="emitTabFocus(elCol)">
         <i class="material-icons">minimize</i>
     </button>
     @if(canFreeze){
@@ -30,8 +32,8 @@
         (mousemove)="common.unbindMouseEvent($event)" (mousedown)="common.unbindMouseEvent($event)" (mouseup)="common.unbindMouseEvent($event)" >&times;</button>
     }
     <input #filterInput name="filter{{columnHeader.column}}"
-    (input)="filterOnKeyUp(columnHeader.column, $any($event).target.value)" maxlength="255" autocomplete="off" 
-    (keyup)="filterOnKeyUp(columnHeader.column, $any($event).target.value)" [attr.type]="columnHeader.dataType" 
+    (input)="filterOnKeyUp($event, columnHeader.column, $any($event).target.value)" maxlength="255" autocomplete="off" 
+    (keyup)="filterOnKeyUp($event, columnHeader.column, $any($event).target.value)" [attr.type]="columnHeader.dataType" 
     (mousemove)="common.unbindMouseEvent($event)" (mousedown)="common.unbindMouseEvent($event)" (mouseup)="common.unbindMouseEvent($event)" />
     <select #compSelect [id]="'selectComp' + elCol" [name]="'selectComp' + elCol" [(ngModel)]="dataTableService.dataFilSrtTracker[columnHeader.column].comparator" 
     (change)="handleComparatorChange(columnHeader.column, $any($event).target.value)" class="select-filter-comparator"
