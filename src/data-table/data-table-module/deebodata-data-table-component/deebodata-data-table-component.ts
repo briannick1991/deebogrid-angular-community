@@ -95,7 +95,6 @@ export class DeebodataDataTableComponent {
       paginatorReady = false;
       handlingSelRows = false
       columnOfInterest: string = ""
-      hiddenCols: string[] = [];
       desRowHeight: string = "50"
       listenToCellDraggerMouseMove = false
       topLevelFilter: string = ""
@@ -1336,7 +1335,7 @@ export class DeebodataDataTableComponent {
       handleSingleColResize(val: any, column?: string) {
         if(val && (this.dataTableService.currColumnEdit || column)){
             const cols = this.getAllColsAtRuntime(null);
-            const colLen = cols.length - this.getMiniColCount()
+            const colLen = cols.length
             const rawCol = column || this.common.replaceUniSep(this.dataTableService.currColumnEdit)
             const thecol = this.columnHeaders.find( c => (c && c.column === rawCol))
             if(thecol){
@@ -1538,7 +1537,7 @@ export class DeebodataDataTableComponent {
                 didXScrl = true
             }
         }
-        this.useRowWid = this.getAllColWidth(colLen - this.getMiniColCount()) + "px";
+        this.useRowWid = this.getAllColWidth(colLen) + "px";
         const limit = Math.min(init, len)
         this.maxCols = this.setMaxCols()
         let horizLim = Math.min(this.maxCols, colLen)
@@ -1620,48 +1619,10 @@ export class DeebodataDataTableComponent {
         })
     }
 
-    maximizeColCells(col: string, fullClear?: boolean) {
-        this.dataTableService.dataFilSrtTracker[col].minimize = false
-        this.minimizeColEls(col, fullClear)
-    }
-
-    minimizeColEls(col: string, fullClear?: boolean) { 
-        this.lockVScroll = true
-        if(!fullClear)
-            setTimeout( () => { this.lockVScroll = false }, 1000)
-        const thecol = this.columnHeaders.find( c => c.column === col)
-        if(thecol){
-            thecol.width = this.dataTableService.dataFilSrtTracker[col].colWidth || this.dataTableService.useColWid;
-            thecol.minimized = !thecol.minimized
-        }
-        this.rows = this.rows.map( r => {
-            r.cells = r.cells?.map( c => {
-                if(c && c.column === col)
-                    c.minimized = !c.minimized
-                return c
-            })
-            return r
-        })
-        if(this.hiddenCols.indexOf(col) < 0)
-            this.hiddenCols.push(col)
-        else
-            this.hiddenCols = this.hiddenCols.filter( c => c !== col)
-        setTimeout( () => { this.dataTableService.setTblBounds(); this.testHideMinBtn() })
-        setTimeout( () => { 
-            if(!fullClear || (fullClear && this.hiddenCols.length === 1)){
-                this.setTableWidthOnChange()
-                setTimeout( () => {
-                    this.dataTableBody.nativeElement.scrollBy(1, 0)
-                    this.setRowSelChecksPlacement()
-                })
-            }
-        }, 750)
-    }
-
     setTableWidthOnChange() {
         const cols = this.getAllColsAtRuntime(null)
         this.maxCols = this.setMaxCols()
-        const colLen = cols.length - this.getMiniColCount()
+        const colLen = cols.length
         setTimeout( () => { 
             this.setDataRowWidthsOnMinimize(this.getAllColWidth(colLen))
         }, 375)
@@ -1683,13 +1644,6 @@ export class DeebodataDataTableComponent {
         this.useRowWid = wid;
     }
 
-    clearHiddenCols() {
-        const len = this.hiddenCols.length
-        for(var i = (len-1); i >= 0; i--)
-            this.maximizeColCells(this.hiddenCols[i], true)
-        setTimeout( () => { this.lockVScroll = false }, 900)
-    }
-
     clearFilInputs() {
         let i = 0
         const els = document.querySelectorAll(".col-header input")
@@ -1704,7 +1658,6 @@ export class DeebodataDataTableComponent {
     resetCurrentData(col?: string) {
         this.topLevelFilter = ""
         this.dataTableService.sortOrder = []
-        this.clearHiddenCols()
         this.clearSelectedRows()
         this.removeAllFreezeCols()
         this.clearFilInputs()
@@ -1725,15 +1678,6 @@ export class DeebodataDataTableComponent {
             if(i < this.maxCols)
                 this.dataTableService.visibleCols.push(this.columnHeaders[i].column)
         }
-    }
-
-    getMiniColCount() {
-        let o = 0
-        for(const prop in this.dataTableService.dataFilSrtTracker){
-            if(this.dataTableService.dataFilSrtTracker[prop].minimize)
-                o += 1
-        }
-        return o
     }
   
 

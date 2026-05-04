@@ -35,7 +35,6 @@ export class DataTableHeader {
   filterBuildUp: any[] = []
   @Input() colWid: string = "";
   @Input() canFreeze: boolean = false;
-  @Input() hideMinCol: boolean = false;
   @Input() columnHeader!: ColumnHeader;
   @Output("sort") sort: EventEmitter<string> = new EventEmitter()
   @Output("render") render: EventEmitter<any> = new EventEmitter()
@@ -43,7 +42,6 @@ export class DataTableHeader {
   @Output("height") height: EventEmitter<number> = new EventEmitter()
   @Output("reset") reset: EventEmitter<string> = new EventEmitter()
   @Output("freeze") freeze: EventEmitter<string> = new EventEmitter()
-  @Output("minimize") minimize: EventEmitter<string> = new EventEmitter()
   @Output("scrollOnFocus") scrollOnFocus: EventEmitter<string> = new EventEmitter()
   @ViewChild('colHeader', { static: true }) colHeaderEl!: ElementRef<HTMLElement>
   @ViewChild('filterInput', { static: true }) filterInputEl!: ElementRef<HTMLInputElement>
@@ -80,13 +78,6 @@ export class DataTableHeader {
                 this.freeze.emit(prop)
             }
         }catch(e){}
-  }
-
-  minimizeColumn(col: string) {
-    this.canTabScroll = true
-    this.dataTableService.dataFilSrtTracker[col].minimize = true
-    this.dataTableService.sortOrder = this.dataTableService.sortOrder.filter( (s: any) => s !== col )
-    this.minimize.emit(col)
   }
 
   doSortOnClick(e: any, col: string) {

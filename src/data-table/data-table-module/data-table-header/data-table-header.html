@@ -1,5 +1,5 @@
 <div #colHeader [id]="'columnHeader' + elCol" class="col-header" (dblclick)="handleColResDblClick(columnHeader.column)"
-[ngClass]="{ 'col-item-freeze': columnHeader.freeze, 'col-header-minimized': columnHeader.minimized }"
+[ngClass]="{ 'col-item-freeze': columnHeader.freeze, }"
 [ngStyle]="{'width': columnHeader.width, 'height': columnHeader.height, 'lineHeight': columnHeader.lineHeight}"
 (mousedown)="tblDragService.handleHeaderSizeAdjust($event)" (mouseup)="tblDragService.handleColResMouseUp($event)"
 (mousemove)="tblDragService.checkItemBorderCursor($event)" (mousemove)="tblDragService.handleHeaderSizeAdjust($event)">
@@ -15,11 +15,6 @@
          (mousemove)="common.unbindMouseEvent($event)" (mousedown)="common.unbindMouseEvent($event)" (mouseup)="common.unbindMouseEvent($event)" 
          class="sort-order-indicator">{{(dataTableService.sortOrder.indexOf(columnHeader.column)+1) | number}}</sup>
     }
-    <button [id]="'btnMin' + elCol" type="button" (click)="minimizeColumn(columnHeader.column)" class="btn-min-col" [class.btn-min-col-hide]="hideMinCol"
-    (mousemove)="common.unbindMouseEvent($event)" (mousedown)="preventTabScroll()" (mouseup)="common.unbindMouseEvent($event)" 
-    (focus)="emitTabFocus(elCol)">
-        <i class="material-icons">minimize</i>
-    </button>
     @if(canFreeze){
         <button type="button" (click)="freezeColOnClick($event, columnHeader.column)" class="btn-freeze-col"
         (mousemove)="common.unbindMouseEvent($event)" (mousedown)="common.unbindMouseEvent($event)" (mouseup)="common.unbindMouseEvent($event)" >

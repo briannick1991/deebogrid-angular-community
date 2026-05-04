@@ -1,9 +1,4 @@
-<div class="hidden-cols">
-    @for (hcol of hiddenCols; track hcol) {
-        <button type="button" class="btn-maximize-col" (click)="maximizeColCells(hcol)">{{hcol}}</button>
-    }
-</div>
-<div class="controls" >
+<div class="controls">
     <input type="text" #topLevelDataFilter autocomplete="off" name="topLevelDataFilter" placeholder="Filter any column..." 
     (input)="topFilterOnKeyUp($event)" (keyup)="topFilterOnKeyUp($event)" maxlength="255" [(ngModel)]="topLevelFilter" 
     [disabled]="!dataTableService.mainData.length || handlingSelRows" autocomplete="off" />
@@ -53,11 +48,9 @@ dataTableService.isSorting }">
             <app-data-table-header
             [columnHeader]="col"
             [colWid]="dataTableService.useColWid"
-            [hideMinCol]="col.hideMinCol"
             [canFreeze]="i === 0 ? true : false"
             (reset)="resetCurrentData($event)"
             (freeze)="freezeColCells($event)"
-            (minimize)="minimizeColEls($event)"
             (scrollOnFocus)="checkTabHorizScroll($event)"
             (height)="setHeaderHeight($event, true)"
             (render)="renderCurrData(false, $event.field)"
@@ -75,7 +68,7 @@ dataTableService.isSorting }">
                 @for(cell of row.cells; track cell.column){
                     @if (isScrolling){
                         <div class="data-cell data-cell-{{common.elifyCol(cell.column)}}" [class.data-cell-riiight]="cell.dataType === 'number'"
-                        [ngClass]="{ 'col-item-freeze': cell.freeze, 'col-header-minimized': cell.minimized, 'holding-check': cell.column === dataTableService.firstCol }"
+                        [ngClass]="{ 'col-item-freeze': cell.freeze, 'holding-check': cell.column === dataTableService.firstCol }"
                         [ngStyle]="{'width': cell.width || dataTableService.useColWid, 'height': row.height}" >{{cell.text}}@if (cell.html){<div class="mock-html"></div>}</div>
                     } @else {
                         <app-data-cell [cell]="cell" 

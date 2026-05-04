@@ -455,15 +455,6 @@ button:disabled,input:disabled,select:disabled{
     background-position: center;
     background-repeat: no-repeat;
 }
-    
-.col-header-minimized{
-    width:0!important;
-    height:0!important;
-    padding:0!important;
-    overflow:hidden!important;
-    border-right:none!important;
-    transition:width 0.3s ease
-}
 
 .btn-maximize-col{
     border:none;
@@ -715,22 +706,6 @@ input.edit-input{
 .btn-freeze-col .material-icons{
     font-size:16px;
     color:var(--accent-color)
-}
-
-.hidden-cols{
-    max-width:100%;
-    overflow-x:auto;
-    clear: both;
-    white-space:nowrap;
-    padding: 17px 15px 5px 4px;
-}
-
-.hidden-cols button:first-of-type::before{
-    content:'Hidden Columns';
-    font-size:12px;
-    font-weight:600;
-    padding-right:11px;
-    vertical-align:middle
 }
 
 .col-header span{
