@@ -55,6 +55,14 @@ export class DataTableHeader {
     this.dataTableService.setIdealColumnWidth.subscribe( c => { this.handleColResDblClick(this.columnHeader.column, true) })
   }
 
+  ngAfterViewInit() {
+    if(this.columnHeader.dataType === "date"){
+        setTimeout( () => {
+            this.filterInputEl?.nativeElement.addEventListener("change", e => { this.filterDateOnKeyUp(e) })
+        })
+    }
+  }
+
   preventTabScroll() {
     this.canTabScroll = false
   }
@@ -107,10 +115,16 @@ export class DataTableHeader {
       }
   }
 
+  filterDateOnKeyUp(event: any) {
+    const elId: string = event.target?.id?.replace(/filter/g, "")
+    const field: string = this.common.replaceUniSep(elId)
+    this.filterOnKeyUp(event, field, event.target.value)
+  }
+
   filterOnKeyUp(event:any, field: string, val: any, manual?: any) {
       const filObj = {value: val, field: field}
       if(field && !this.dataTableService.isFiltering){
-          if(!manual && event && !this.common.keyCanSearch(event))
+          if(!manual && event && event.type !== "change" && !this.common.keyCanSearch(event))
             return;
           this.dataTableService.isFiltering = true
           this.dataTableService.dataFilSrtTracker[field].filter = val || ""

@@ -389,7 +389,9 @@ export class DeebodataDataTableComponent {
                               if(val && typeof val === "string"){
                                   const tval = val.trim()
                                   const low = tval.toLocaleLowerCase()
-                                  if(this.common.testShortDate(tval) || this.common.testISODate(tval) || this.common.testLongDate(low))
+                                  if(this.common.testLongDate(low))
+                                      nData[i][prop] = this.common.coerceDate(low)
+                                  if(!this.common.testLongDate(low) && (this.common.testShortDate(tval) || this.common.testISODate(tval)))
                                       nData[i][prop] = this.common.coerceDate(tval)
                                   if(this.common.testISODate(tval.replace(/ /g, "")))
                                       nData[i][prop] = this.common.coerceDate(tval.replace(/ /g, ""))
