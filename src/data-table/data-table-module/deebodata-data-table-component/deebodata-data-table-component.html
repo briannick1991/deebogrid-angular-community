@@ -29,6 +29,7 @@ dataTableService.isSorting }">
 </div>
 <div class="relly" style="z-index: 6;">
     <div #fCellDragger tabindex="0" id="fCellDragger" (focus)="focusCellDragger()" (blur)="execValClear(true)"
+    (mousedown)="focusCellDraggerFromMouseDown()" (keydown)="handleFDragTab($event)" (keydown)="handleDraggerKD($event)"
     [ngClass]="{'hide': dataTableService.currEditIndex < 0, 'focused-cell-dragger': dataTableService.currEditIndex > -1 }"></div>
 </div>
 <div [ngClass]="{'row-numbers': rowNumbers, 'hide': !rowNumbers}" >
@@ -60,7 +61,7 @@ dataTableService.isSorting }">
     </div>
     <div #dataTableBody id="dataTableBody" style="overflow: auto;" [style.height]="dataTableService.dTblHeight + 'px'" (scroll)="handleScroll($event)"
     [class.table-working]="dataTableService.isFiltering || dataTableService.isSorting" (scrollend)="handleScrollEnd()">
-        <div #aboveArea [style.height]="aboveHgt + 'px'"></div>
+        <div #aboveArea [style.height]="aboveHgt() + 'px'"></div>
         @for(row of rows; track row.index){
             <div [id]="row.id" class="data-table-row" [attr.data-index]="row.index"
             [class.data-row-selected]="!dataTableService.displayOnlySelRows && dataTableService.currSelRows.indexOf(row.index) > -1"
@@ -87,7 +88,7 @@ dataTableService.isSorting }">
                 }
             </div>
         }
-        <div #belowArea [style.height]="belowHgt + 'px'"></div>
+        <div #belowArea [style.height]="belowHgt() + 'px'"></div>
         @if(!dataTableService.currFilData.length){
             <div [style.height]="dataTableService.dTblHeight + 'px'" class="data-table-row flex-center data-table-row-no-data" style="width: 100%; white-space: normal;">
                 <div class="center">{{dataTableService.noDataMsg}}</div>

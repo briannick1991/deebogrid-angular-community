@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, HostListener, Input, Output, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, HostListener, Input, Output, signal, ViewChild } from '@angular/core';
 import { ColumnHeader } from '../../../interfaces/column-header';
 import { CommonService } from '../../../services/common-service';
 import { TableDragService } from '../../../services/table-drag-service';
@@ -47,6 +47,8 @@ export class DeebodataDataTableComponent {
             this.clearDragEditFlag()
             try{this.fCellDragger.nativeElement.blur()}catch(e){}
         }
+        if(this.listenToCellDraggerMouseUp)
+            this.handleDraggerMU(e)
         this.handleScrlBarDrag() 
     }
 
@@ -67,7 +69,6 @@ export class DeebodataDataTableComponent {
     @HostListener('window:resize', ['$event'])
     onWindowResize(e: Event) {
         this.dataTableService.setTblBounds()
-        this.testHideMinBtn()
         this.clearValidatedEdit()
     }
 
@@ -84,8 +85,8 @@ export class DeebodataDataTableComponent {
       }
 
       rows: DataRow[] = [];
-      aboveHgt: number = 0;
-      belowHgt: number = 0;
+      aboveHgt = signal<number>(0);
+      belowHgt = signal<number>(0);
       dtChecks: number[] = [];
       rowNos: RowNumber[] = [];
       verticalRest = 0
@@ -97,6 +98,7 @@ export class DeebodataDataTableComponent {
       columnOfInterest: string = ""
       desRowHeight: string = "50"
       listenToCellDraggerMouseMove = false
+      listenToCellDraggerMouseUp = false
       topLevelFilter: string = ""
       allFilSortInfo: string = ""
       lockVScroll: boolean = false;
@@ -602,7 +604,7 @@ export class DeebodataDataTableComponent {
         setLastRowIndex() {
             const realMax = this.dataTableService.currFilData.length - 1
             const defNum = parseInt(this.dataTableService.defltRHgt.replace(/[ ]?px/g, ""))
-            const wannabeMax = (this.rows.length - 1) + Math.floor(this.aboveHgt/defNum)
+            const wannabeMax = (this.rows.length - 1) + Math.floor(this.aboveHgt()/defNum)
             this.lastElRowIndex = Math.min(wannabeMax, realMax)
             return this.lastElRowIndex;
         }
@@ -659,7 +661,6 @@ export class DeebodataDataTableComponent {
               this.paginatorReady = true;
               this.handleTheme(color1, color2)
               setTimeout( () => { 
-                this.testHideMinBtn() 
                 this.setColHeaderHgt()
                 this.setHoldingCheckCls()
                 this.setRowSelChecksPlacement()
@@ -674,7 +675,7 @@ export class DeebodataDataTableComponent {
                         total += 1
                         this.dataTableService.currMapping[z] = z
                     }
-                    this.belowHgt = total*defNum
+                    this.belowHgt.set(total*defNum)
                 }
                 
                 this.setColsOnVisScreen()
@@ -790,7 +791,8 @@ export class DeebodataDataTableComponent {
           /*vert scroll*/
           if(top === this.verticalRest || this.lockVScroll){
               this.isScrolling = false
-              this.clearValidatedEdit();
+              if(!this.dataTableService.autoScrollOnEdit)
+                this.clearValidatedEdit();
               return this.setRowSelChecksPlacement()
           }
           this.isScrolling = true
@@ -833,6 +835,7 @@ export class DeebodataDataTableComponent {
         this.isScrolling = false
         this.lockVScroll = false
         setTimeout( () => { 
+            this.dataTableService.autoScrollOnEdit = false
             this.setColsOnVisScreen()
             this.setRowSelChecksPlacement()
             if(this.listenToCellDraggerMouseMove)
@@ -993,15 +996,12 @@ export class DeebodataDataTableComponent {
                 h += 1
             }
             this.rows = [...this.rows, ...rowsToAdd]
-            if(bhToSub){
-                this.belowHgt -= bhToSub
-                if(this.belowHgt < 0)
-                    this.belowHgt = 0
-            }
+            if(bhToSub)
+                this.belowHgt.set(Math.max(0, (this.belowHgt() - bhToSub)))
             if(chksToAdd.length)
                 this.dtChecks= [...this.dtChecks, ...chksToAdd]
             if(ahToAdd)
-                this.aboveHgt += ahToAdd
+                this.aboveHgt.set(this.aboveHgt() + ahToAdd)
             this.setLastRowIndex()
         }
     }
@@ -1054,12 +1054,10 @@ export class DeebodataDataTableComponent {
                 }
                 h += 1
             }
-            if(ahToSub){
-                this.aboveHgt -= ahToSub
-                this.aboveHgt = Math.max(0, this.aboveHgt)
-            }
+            if(ahToSub)
+                this.aboveHgt.set(Math.max(0, (this.aboveHgt() - ahToSub)))
             if(bhToAdd)
-                this.belowHgt += bhToAdd
+                this.belowHgt.set(this.belowHgt() + bhToAdd)
         }
     }
 
@@ -1074,7 +1072,7 @@ export class DeebodataDataTableComponent {
             this.dtChecks = this.dtChecks.filter( c => !justindx.includes(c))
             const item = this.dataTableService.mainData[(this.rows[0]?.index || -1)]
             if(item)
-                this.aboveHgt = Math.max(0, this.dataTableService.findObjIndxInData(item, this.dataTableService.currFilData)*defNum)
+                this.aboveHgt.set(Math.max(0, this.dataTableService.findObjIndxInData(item, this.dataTableService.currFilData)*defNum))
         }
     }
 
@@ -1090,7 +1088,7 @@ export class DeebodataDataTableComponent {
             const rlen = this.rows.length
             const item = this.dataTableService.mainData[(this.rows[(rlen-1)]?.index || -1)]
             if(item)
-                this.belowHgt = Math.max(0, ((this.dataTableService.currFilData.length-1)-this.dataTableService.findObjIndxInData(item, this.dataTableService.currFilData))*defNum)
+                this.belowHgt.set(Math.max(0, ((this.dataTableService.currFilData.length-1)-this.dataTableService.findObjIndxInData(item, this.dataTableService.currFilData))*defNum))
             this.setLastRowIndex()
         }
     }
@@ -1114,7 +1112,7 @@ export class DeebodataDataTableComponent {
             clearTimeout(this.valEditFocusTo)
             this.valEditFocusTo = null
         }
-        setTimeout( () => {
+        this.valEditFocusTo = setTimeout( () => {
             const rel = this.validatedEdit.nativeElement
             let el;
             const elD = <HTMLDivElement>document.querySelector(".relly.edit-input")
@@ -1136,12 +1134,14 @@ export class DeebodataDataTableComponent {
                 this.fCellDragger.nativeElement.style.left = (Math.ceil(cbds.left-rbds.left) + cbds.width - 4) + "px";
                 this.fCellDragger.nativeElement.style.top = (Math.ceil(cbds.bottom-rbds.top) - 4) + "px"
             }
-        })
+        }, 10)
     }
 
     clearFCellDragger() {
-        this.fCellDragger.nativeElement.style.removeProperty("top")
-        this.fCellDragger.nativeElement.style.removeProperty("left")
+        if(!this.dataTableService.autoScrollOnEdit){
+            this.fCellDragger.nativeElement.style.removeProperty("top")
+            this.fCellDragger.nativeElement.style.removeProperty("left")
+        }
     }
 
     clearValidatedEdit(e?: any, clearDrag?: boolean) {
@@ -1164,6 +1164,49 @@ export class DeebodataDataTableComponent {
             this.clearCellDEdits()
         setTimeout( () => { this.dataTableService.clearAllFocused() })
      }
+
+     handleDraggerMU(e: any) {
+        if(e && e.target && e.target.id && e.target.id.startsWith("selEdit"))
+            return;
+        this.listenToCellDraggerMouseUp = false
+        if(this.listenToCellDraggerMouseMove){
+            this.listenToCellDraggerMouseMove = false
+            this.clearCellDEdits()
+        }
+    }
+
+    handleDraggerKD(e: any) {
+        const row = document.getElementById("dataTableRow" + this.dataTableService.currEditIndex)
+        if(row && this.dataTableService.currEditCol){
+            let targRow;
+            let bds;
+            if(e && this.common.isDownKey(e))
+                targRow = row.nextElementSibling
+
+            if(e && this.common.isUpKey(e))
+                targRow = row.previousElementSibling
+            if(targRow){
+                bds = targRow.getBoundingClientRect()
+                this.listenToCellDraggerMouseMove = true
+                const execDragEOnDK = (e: any) => {
+                    this.handleCellDraggerEdit(e)
+                }
+                targRow.addEventListener("mousemove", execDragEOnDK)
+                const mouseEvent = new MouseEvent('mousemove', {
+                    view: window,
+                    bubbles: false,
+                    cancelable: false,
+                    clientX: bds.right, // X-coordinate relative to the viewport
+                    clientY: bds.bottom,  // Y-coordinate relative to the viewport
+                });
+                targRow.dispatchEvent(mouseEvent)
+                targRow.removeEventListener("mousemove", execDragEOnDK)
+                setTimeout( () => {this.listenToCellDraggerMouseMove = false})
+                if(e.target.getBoundingClientRect().bottom > (this.dataTableService.tblBot-100))
+                    this.dataTableBody.nativeElement.scrollBy(0, this.dataTableService.dTblHeight/2)
+            }
+        }
+    }
 
      clearCellDEdits() {
         this.clearFCellDragger()
@@ -1195,8 +1238,23 @@ export class DeebodataDataTableComponent {
         const cell= document.querySelector("#dataTableRow" + this.dataTableService.currEditIndex + " .data-cell-" + this.common.elifyCol(this.dataTableService.currEditCol))
         if(cell)
             cell.classList.add("dragger-cell-focused")
-        this.listenToCellDraggerMouseMove = true
+        this.listenToCellDraggerMouseUp = true
      }
+
+     focusCellDraggerFromMouseDown() {
+        this.listenToCellDraggerMouseMove = true
+    }
+
+    handleFDragTab(e: any) {
+        if(e && this.common.isTabKey(e)){
+            const cell = document.getElementsByClassName("dragger-cell-focused")[0]
+            const nxtCell: HTMLElement = <HTMLElement>cell.parentElement?.nextElementSibling?.firstElementChild
+            if(cell && nxtCell){
+                this.dataTableService.autoScrollOnEdit = true;
+                setTimeout( () => { nxtCell.focus() })
+            }
+        }
+    }
 
      settleCellDragger() {
         const els = document.getElementsByClassName("dragger-cell-focused")
@@ -1241,7 +1299,7 @@ export class DeebodataDataTableComponent {
                 }
                 if(els.length > 1){
                     const dir = this.scrollDir === "down" ? 1 : -1;
-                    const toScl = dir*(Math.ceil(e.offsetY)/1.75)
+                    const toScl = dir*(Math.ceil((e.offsetY || 20))/2)
                     this.dataTableBody.nativeElement.scrollBy(0, toScl)
                 }
                 const fCellDragger = <HTMLElement>document.getElementsByClassName("focused-cell-dragger")[0]
@@ -1273,7 +1331,7 @@ export class DeebodataDataTableComponent {
         }
     }
 
-    validateRawText(text: string, col: string, dataType: string): string {
+    validateRawText(text: string, dataType: string): string {
         if(dataType === "number" && (!text || /[a-zA-Z \/]/g.test(text)))
             return ""
         return text
@@ -1284,7 +1342,7 @@ export class DeebodataDataTableComponent {
             let cfDIdx;
             const valEl = <HTMLInputElement>document.getElementsByClassName("edit-input")[0]
             let val = forceVal ? forceVal : (valEl ? valEl.value : e.value);
-            if(val && !this.validateRawText(val, e.column, this.validatedEditType)){
+            if(val && !this.validateRawText(val, this.validatedEditType)){
                 if(!noBlur)
                     this.clearValidatedEdit(e)
                 return;
@@ -1362,29 +1420,8 @@ export class DeebodataDataTableComponent {
                 const allColW = this.getAllColWidth(colLen)
                 this.setDataRowWidthsOnMinimize(allColW)
                 this.setRowSelChecksPlacement() 
-                this.testHideMinBtn()
             })
             this.clearValidatedEdit()
-        }
-    }
-
-    testHideMinBtn() {
-        let i = 0
-        const els = document.getElementsByClassName("btn-min-col")
-        const len = els.length
-        for(i; i < len; i++){
-            const el = els[i]
-            const col = el.id.replace(/btnMin/g, "")
-            const ellf = el.getBoundingClientRect().left
-            const srt = document.getElementById("btnSort" + col)
-            const colHd = this.columnHeaders.find( c => c.column === this.common.replaceUniSep(col)) 
-            if(colHd && srt){
-                const srtrt = srt.getBoundingClientRect().right + 5;
-                if(ellf < srtrt)
-                    colHd.hideMinCol = true
-                else
-                    colHd.hideMinCol = false
-            }
         }
     }
 
@@ -1483,8 +1520,8 @@ export class DeebodataDataTableComponent {
         const tbody = this.dataTableBody.nativeElement
         const tbodyX = tbody.scrollLeft
         this.rows = []
-        this.aboveHgt = 0
-        this.belowHgt = 0
+        this.aboveHgt.set(0)
+        this.belowHgt.set(0)
         this.rowNos = []
         this.dtChecks = []
         this.clearValidatedEdit(null, true)
@@ -1582,7 +1619,7 @@ export class DeebodataDataTableComponent {
                     if(reset)
                         this.dataTableService.currMapping[z] = z
                 }
-                this.belowHgt = total*defNum
+                this.belowHgt.set(total*defNum)
                 if(!reset){
                     if (typeof Worker !== 'undefined') {
                         // Create a new

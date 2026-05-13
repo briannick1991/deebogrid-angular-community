@@ -184,6 +184,20 @@ export class CommonService {
             return false
         }
 
+        isTabKey(event: any) {
+            if(event){
+                if (typeof event.key !== "undefined") {
+                    return event.key === 'Tab'
+                } else if (typeof event.keyIdentifier !== "undefined") {
+                    return event.keyIdentifier === 'Tab'
+                } else if (typeof event.keyCode !== "undefined") {
+                    return event.keyCode === 9
+                }
+                return false
+            }
+            return false
+        }
+
         keyCanSearch(event: any) {
             return (this.isSearchKey(event) ||
             this.isBackKey(event) ||
@@ -240,6 +254,29 @@ export class CommonService {
             }
             return false
         }
+
+        isDownKey(event: any) {
+            if (event && event.key !== undefined) {
+                return event.key === 'ArrowDown'
+            } else if (event.keyIdentifier !== undefined) {
+                return event.keyIdentifier === 'ArrowDown'
+            } else if (event.keyCode !== undefined) {
+                return event.keyCode === 40
+            }
+            return false
+        }
+
+        isUpKey(event: any) {
+            if (event && event.key !== undefined) {
+                return event.key === 'ArrowUp'
+            } else if (event.keyIdentifier !== undefined) {
+                return event.keyIdentifier === 'ArrowUp'
+            } else if (event.keyCode !== undefined) {
+                return event.keyCode === 38
+            }
+            return false
+        }
+
 
         dontSan(val: any) {
             if(val && (this.testShortDate(val) || this.testISODate(val)))

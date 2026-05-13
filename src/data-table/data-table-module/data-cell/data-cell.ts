@@ -24,6 +24,7 @@ export class DataCellComponent {
   canEdit = false
   elCol: string = ""
   cellStyle: any = {}
+  setCellEditScrlActionTO: any = null;
   @Input() rawText: any;
   @Input() cell!: DataCell;
   @Input() rowId: string = "";//starts with dataTableRow
@@ -148,16 +149,57 @@ export class DataCellComponent {
       }
   }
 
-  setCellToEdit() {
-      if(this.tblDragService.didResizeOnEvent || !this.cell.editable)
+  validateRawText(text: string, dataType: string): string {
+    if(dataType === "number" && (!text || /[a-zA-Z \/]/g.test(text)))
+      return ""
+    return text
+  }
+
+  setToEditAfterTO() {
+      this.setCellEditScrlActionTO = setTimeout( () => {
+        if(this.dataTableService.currEditCol === this.cell.column)
+          this.setCellToEdit(true)
+      }, 100)
+  }
+
+  setCellToEdit(noHScrl?: boolean) {
+      if(this.tblDragService.didResizeOnEvent || !this.cell.editable){
+          if(!this.cell.editable){
+            this.dataTableService.clearAllFocused()
+            this.dataTableService.clearDCellFcsd()
+            this.clearVEditFocus.emit("")
+            this.dataTableService.currEditCol = ""
+            this.setCellEditScrlActionTO = null;
+            this.dataTableService.autoScrollOnEdit = false
+            this.dataTableService.currEditIndex = -1
+          }
           return//not editable or was really a drag event, not click
+      }
+      this.dataTableService.currEditCol = this.cell.column
       this.dataTableService.currEditIndex = parseInt(this.rowId.replace(/^dataTableRow/, ""))
       const cell = this.cellElem.nativeElement
+      const cellWid = parseInt(this.dataTableService.useColWid?.replace(/px/g, "") || "250")
+      if(cell.getBoundingClientRect().right+cellWid >= this.dataTableService.tblRight){
+          if(!noHScrl){
+              this.dataTableService.autoScrollOnEdit = true
+              const grid = <HTMLElement>document.getElementById("dataTableBody")
+              grid.scrollBy((cellWid+1), 0)
+          }
+          if(!this.setCellEditScrlActionTO){
+              return this.setToEditAfterTO()
+          } else {
+              window.clearTimeout(this.setCellEditScrlActionTO)
+          }
+      }
       this.dataTableService.clearAllFocused()
       this.dataTableService.clearDCellFcsd()
-      this.dataTableService.currEditCol = this.cell.column
+      this.setCellEditScrlActionTO = null;
+      setTimeout( () => this.dataTableService.autoScrollOnEdit = false)
       if(this.needsVal()){
-        this.validateEditFocus.emit({type: this.cell.dataType, value: this.cell.rawText})
+        const okText = this.validateRawText(this.cell.rawText, this.cell.dataType)
+        if(this.cell.rawText && !okText)
+          return;
+        this.validateEditFocus.emit({type: this.cell.dataType, value: okText})
         return;
       }
       this.clearVEditFocus.emit("")
@@ -201,7 +243,7 @@ export class DataCellComponent {
             if(!actEl || (actEl && !/data-cell/g.test(actEl?.className))){
               this.dataTableService.currEditIndex = -1
               const fCellDragger = <HTMLElement>document.getElementsByClassName("focused-cell-dragger")[0]
-              if(fCellDragger){
+              if(fCellDragger && !this.dataTableService.autoScrollOnEdit){
                 fCellDragger.style.removeProperty("top")
                 fCellDragger.style.removeProperty("left")
               }

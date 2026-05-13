@@ -39,6 +39,7 @@ export class DataTableService {
             useColWid: string = "100px"
             firstCol: string = ""
             primaryKey: string = ""
+            autoScrollOnEdit: boolean = false
             setIdealColumnWidth: Subject<any> = new Subject()
             currSelRows: any[] = []//just be an index of mainData
             displayOnlySelRows = false

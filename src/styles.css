@@ -678,24 +678,6 @@ input.edit-input{
     font-size: 16px;
 }
 
-.btn-min-col{
-    cursor:pointer;
-    top:0;
-    right:2px;
-    font-size:20px;
-    border:none;
-    background:none;
-    position:absolute;
-    padding:0 2px 5px 0;
-    color:var(--accent-color)
-}
-
-.btn-min-col-hide{
-    z-index: 0;
-    visibility: hidden;
-    pointer-events: none;
-}
-
 .btn-freeze-col{
     float:left;
     border:none;
