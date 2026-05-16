@@ -12,6 +12,7 @@ import { FormsModule } from '@angular/forms';
 import { CellEdit } from '../../../interfaces/cell-edit';
 import { DataCell } from '../../../interfaces/data-cell';
 import { RowNumber } from '../../../interfaces/row-number';
+import { ColumnSymbol } from '../../../interfaces/column-symbol';
 
 @Component({
   selector: 'app-deebodata-data-table-component',
@@ -111,6 +112,14 @@ export class DeebodataDataTableComponent {
       linkCell: any;
       linkCells: any[] = []
       validatedEditType: string = ""
+      @Input() data: any[] = []
+      @Input() color1: string = ""
+      @Input() color2: string = ""
+      @Input() primaryKey: string = ""
+      @Input() defRowHgt: string = "50px"
+      @Input() defGridHgt: number = 500
+      @Input() altRowColor: string = "#fafafa";
+      @Input() myColumnSymbols: ColumnSymbol[] = []
       @Input() editable: boolean = true;
       @Input() rowNumbers: boolean = true
       @Output("cellEdit") cellEdit: EventEmitter<CellEdit> = new EventEmitter()
@@ -128,23 +137,22 @@ export class DeebodataDataTableComponent {
       @ViewChild("topLevelDataFilter", { static: true }) topLevelDataFilter!: ElementRef<HTMLInputElement>;
 
       ngOnInit() {
-        this.dataTableService.getSampleData().subscribe( data => {
-            try{
-                let tdata = this.convertNeededCols(data.result)
-                this.dataTableService.mainData = tdata.filter( (d: any) => true )
-                this.dataTableService.currFilData = tdata.filter( (d: any) => true )
-                this.dataTableService.mainDataLen = this.dataTableService.mainData.length
-                this.buildInitUiDataTable(tdata, "white", "#00a8f3")//hex or rgb values work best
-                if(!this.dataTableService.errorLoading)
-                  this.dataTableService.noDataMsg = "No data to display for this configuration.";
-                this.tblDragService.dTblHeightOutput.subscribe( h => this.setTableHeight(h) )
-                this.tblDragService.columnMove.subscribe( c => this.processColMove(c) )
-                setTimeout( () => this.setTableHeight(510), 1000)//for demo
-            }catch(e: any) { 
-                this.dataTableService.noDataMsg = e.message 
-            }
-        }
-        )
+        if(this.defRowHgt && /\d+px/g.test(this.defRowHgt))
+            this.dataTableService.defltRHgt = this.defRowHgt
+        if(this.defGridHgt)
+            this.dataTableService.dTblHeight = this.defGridHgt
+        if(this.myColumnSymbols)
+            this.dataTableService.columnSymbols = [...this.myColumnSymbols]
+        let tdata = this.convertNeededCols([...this.data])
+        this.dataTableService.mainData = tdata.filter( (d: any) => true )
+        this.dataTableService.currFilData = tdata.filter( (d: any) => true )
+        this.dataTableService.mainDataLen = this.dataTableService.mainData.length
+        this.buildInitUiDataTable(tdata, this.color1, this.color2)//hex or rgb values work best
+        if(!this.dataTableService.errorLoading)
+            this.dataTableService.noDataMsg = "No data to display for this configuration.";
+        this.tblDragService.dTblHeightOutput.subscribe( h => this.setTableHeight(h) )
+        this.tblDragService.columnMove.subscribe( c => this.processColMove(c) )
+        setTimeout( () => this.setTableHeight(510), 1000)//for demo
       }
 
         getAllColsAtRuntime(excludeHidden: any) {
@@ -687,6 +695,16 @@ export class DeebodataDataTableComponent {
       getPrimaryKey(cols: string[]): string {
         let i = 0
         const len = cols.length
+        if(this.primaryKey){//means they set 1 manually
+            const colData = this.dataTableService.mainData.map( (d) => d[this.primaryKey] )
+            if(colData.length && !colData.some( (c) => !c )){
+                const map = new Set(colData)
+                if(map.size === this.dataTableService.mainDataLen){
+                    this.dataTableService.primaryKey = this.primaryKey;
+                    return this.dataTableService.primaryKey;//they set a good one
+                }
+            }
+        }
         for(i; i < len; i++){
             const col = cols[i]
             if(this.common.idCol(col)){
@@ -1496,6 +1514,8 @@ export class DeebodataDataTableComponent {
                     }
                     rule5 = ".data-cell{ border-bottom: 1px solid "+co2+"; border-right: 1px solid "+co2+"}"
                 }
+                if(this.altRowColor)
+                    rule4 = ".data-table-row:not(.data-row-selected):nth-of-type(even){background:"+this.altRowColor+"}"
                 if(rule1 || rule1a || rule2 || rule3 || rule5 || rule6){
                     const el = document.createElement("style")
                     document.head.appendChild(el)
@@ -1507,6 +1527,8 @@ export class DeebodataDataTableComponent {
                         el.sheet?.insertRule(rule2)
                     if(rule3)
                         el.sheet?.insertRule(rule3)
+                    if(rule4)
+                        el.sheet?.insertRule(rule4)
                     if(rule5)
                         el.sheet?.insertRule(rule5)
                     if(rule6)

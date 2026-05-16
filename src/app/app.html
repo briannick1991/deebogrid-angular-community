@@ -1,6 +1,16 @@
 <div style="margin: 0 auto; width: 97%;">
-    <app-deebodata-data-table-component
-    [editable]="true"
-    [rowNumbers]="true"
-    ></app-deebodata-data-table-component>
+    @if(data.length){<!--set data ONCE per app lifecycle-->
+        <app-deebodata-data-table-component
+        [editable]="true"
+        [rowNumbers]="true"
+        [data]="data"
+        [color1]="'white'"
+        [color2]="'#00a8f3'"
+        [primaryKey]="'employee_id'"
+        [defRowHgt]="'100px'"
+        [defGridHgt]="500"
+        [altRowColor]="'#ececec'"
+        [myColumnSymbols]="symbols"
+        ></app-deebodata-data-table-component>
+    }
 </div>

@@ -54,22 +54,11 @@ export class DataTableService {
                 date: ["Equals", "Not on", "Empty", "Not Empty"],
             }
             badStrings: string[] = ["null", "NULL", "Null", "undefined", "UNDEFINED", "Undefined"]
-            apiUrl = "https://d2ffvluimla00s.cloudfront.net/senators.json"
-
             /*numeric columns can have a predefined symbol up to 2 characters long, 
             add these based on columns (object properties) coming from your api*/
             columnSymbols: ColumnSymbol[] = [
                 { column: "width", symbol: "px" },
             ]
-
-            getSampleData(): Observable<any> {
-              return this.http.get(this.apiUrl).pipe(
-                catchError(error => {
-                    this.errorLoading = true
-                    this.noDataMsg = error.message
-                    return of([]); // Return an empty array as a fallback
-                }))
-            }
 
             getNewTrackerObj(colName: string) {
                 const symbol = this.columnSymbols.filter( c => c.column === colName)[0]?.symbol?.substring(0, 2);
